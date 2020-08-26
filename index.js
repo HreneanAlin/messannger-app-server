@@ -1,3 +1,4 @@
+
 const express = require('express')
 const socketio = require('socket.io')
 const http = require('http')
@@ -10,8 +11,10 @@ const app = express()
 const server = http.createServer(app)
 const io = socketio(server)
 
-app.use(router)
+app.use(express.json())
 app.use(cors())
+
+app.use(router)
 
 io.on('connection', (socket) => {
     console.log("we have a new connection")
@@ -33,7 +36,6 @@ io.on('connection', (socket) => {
         const user = getUser(socket.id)
         io.to(user.room).emit('message',{user:user.name, text: message})
         io.to(user.room).emit('roomData',{room: user.room, users:getUsersInRoom(user.room)})
-
         callback()
 
     } )

@@ -3,39 +3,35 @@ const express = require('express')
 const router = express.Router()
 const bodyParser = require('body-parser')
 const jsonParser = bodyParser.json()
-const urlencodedParser = bodyParser.urlencoded({ extended: false })
+const urlencodedParser = bodyParser.urlencoded({extended: false})
 const {createUserDb, getUserDb} = require('./repository/usersRepository')
 
 
-router.get('/',(req,res)=>{
+router.get('/', (req, res) => {
     res.send("server is up and runnig")
 })
 
-router.post('/register',jsonParser, async (req,res)=>{
-   // console.log(req.body)
+router.post('/register', jsonParser, async (req, res) => {
+    // console.log(req.body)
+
+
+    if (!req.body.password || !req.body.firstName ||
+        !req.body.lastName || !req.body.email || !req.body.userName) {
+        res.status(400).send("Entry in all fields required!")
+        return
+    }
     try {
-
-
-        if (!req.body.password || !req.body.firstName ||
-            !req.body.lastName || !req.body.email || !req.body.userName) {
-            res.status(400).send("Entry in all fields required!")
-            return
-        }
-
-        const {error} = await createUserDb(req.body)
-        if (error){
-            res.status(error.status).send(error.message)
-            return
-        }
-        res.send('Am primit')
-    } catch(e){
+        const {action} = await createUserDb(req.body)
+        res.status(action.status).send(action.message)
+    }catch (e) {
         throw e
     }
+
 })
 
-router.post('/login',jsonParser,async (req,res)=>{
+router.post('/login', jsonParser, async (req, res) => {
     console.log(req.body)
-    const {error, user } =await getUserDb(req.body)
+    const {error, user} = await getUserDb(req.body)
     if (error) {
         // res.status = error.status
         // res.send(error.message)
@@ -46,8 +42,8 @@ router.post('/login',jsonParser,async (req,res)=>{
 
     res.json({
         firstName: user.first_name,
-        lastName:user.last_name,
-        userName:user.user_name
+        lastName: user.last_name,
+        userName: user.user_name
     })
 })
 

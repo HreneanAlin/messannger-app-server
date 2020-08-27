@@ -24,10 +24,10 @@ db.connect(err =>{
 
     try {
         if(await checkIfUserNameExist(body.userName)){
-            return {error: {status: 403, message: "Username Already Taken!"}}
+            return {action: {status: 403, message: "Username Already Taken!"}}
         }
         if(await checkIfEmailExist(body.email)){
-            return {error: {status: 403, message: "Email Already in use"}}
+            return {action: {status: 403, message: "Email Already in use"}}
         }
 
 
@@ -49,6 +49,8 @@ db.connect(err =>{
             console.log('inserted done')
             console.log(result)
         })
+
+        return {action: {status: 200, message: "Account Created"}}
     }catch (e) {
         if(e) throw e
 

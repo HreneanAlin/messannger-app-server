@@ -13,5 +13,11 @@
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
       <jdbc-url>jdbc:mysql:// remotemysql.com:3306/hptW1gVUkO</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="db4free" uuid="1a030291-2a6b-40db-b737-e96ba5fb7d4c">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://db4free.net:3306/db_messenger_app</jdbc-url>
+    </data-source>
   </component>
 </project>

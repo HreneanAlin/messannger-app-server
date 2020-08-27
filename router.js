@@ -8,8 +8,7 @@ const {createUserDb, getUserDb} = require('./repository/usersRepository')
 
 
 router.get('/', (req, res) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
     res.send("server is up and runnig")
 })
 

@@ -5,6 +5,7 @@ const bodyParser = require('body-parser')
 const jsonParser = bodyParser.json()
 //const urlencodedParser = bodyParser.urlencoded({extended: false})
 const {createUserDb, getUserDb} = require('./repository/usersRepository')
+console.log("fuckkkkherokuuuu")
 
 
 router.get('/', (req, res) => {

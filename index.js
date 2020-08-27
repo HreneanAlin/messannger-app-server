@@ -1,16 +1,20 @@
 
 const express = require('express')
-const socketio = require('socket.io')
+
+
 const http = require('http')
 const router = require("./router.js")
+const app = express()
+const server = http.createServer(app)
+const socketio = require('socket.io')
+
 const cors = require('cors')
 const {addUser, removeUser, getUser, getUsersInRoom} = require('./users.js')
 const {getUserDbByUserName} = require('./repository/usersRepository')
 const PORT = process.env.PORT || 5000
 
-const app = express()
-const server = http.createServer(app)
-const io = socketio(server)
+
+const io = socketio(server).origins('*:*')
 
 app.use(express.json())
 app.use(cors())

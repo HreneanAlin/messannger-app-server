@@ -5,6 +5,7 @@ const http = require('http')
 const router = require("./router.js")
 const cors = require('cors')
 const {addUser, removeUser, getUser, getUsersInRoom} = require('./users.js')
+const {getUserDbByUserName} = require('./repository/usersRepository')
 const PORT = process.env.PORT || 5000
 
 const app = express()
@@ -19,8 +20,25 @@ app.use(router)
 io.on('connection', (socket) => {
     console.log("we have a new connection")
 
-    socket.on('join', ({name, room}, callback) => {
-        const {error, user} = addUser({id: socket.id, name, room})
+    socket.on('join', async ({name, room,generatedId, isAuthed, authUser}, callback) => {
+        console.log("The generated id ",generatedId)
+        let verified = false
+
+        if(isAuthed){
+           name = `${name}`
+
+           try {
+               const userDb = await getUserDbByUserName(authUser.userName)
+               if(userDb){
+                   verified = true
+               }
+
+           }catch (e) {
+               throw e
+           }
+
+       }
+        const {error, user} = addUser({id: socket.id, name, room, generatedId, verified})
         if (error) return callback(error)
 
         socket.emit('message', {user: 'admin', text: `${user.name} wellcome to ${user.room}`})
@@ -34,7 +52,8 @@ io.on('connection', (socket) => {
 
     socket.on('sendMessage',(message,callback) =>{
         const user = getUser(socket.id)
-        io.to(user.room).emit('message',{user:user.name, text: message})
+
+        io.to(user.room).emit('message',{user:user, text: message})
         io.to(user.room).emit('roomData',{room: user.room, users:getUsersInRoom(user.room)})
         callback()
 

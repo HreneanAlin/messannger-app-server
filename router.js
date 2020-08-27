@@ -13,21 +13,33 @@ router.get('/',(req,res)=>{
 
 router.post('/register',jsonParser, async (req,res)=>{
    // console.log(req.body)
-    if(!req.body.password || !req.body.firstName ||
-        !req.body.lastName || !req.body.email || !req.body.userName ){
-        res.status(400).send("bad request")
-        return
+    try {
+
+
+        if (!req.body.password || !req.body.firstName ||
+            !req.body.lastName || !req.body.email || !req.body.userName) {
+            res.status(400).send("Entry in all fields required!")
+            return
+        }
+
+        const {error} = await createUserDb(req.body)
+        if (error){
+            res.status(error.status).send(error.message)
+            return
+        }
+        res.send('Am primit')
+    } catch(e){
+        throw e
     }
-    res.send('Am primit')
-   await createUserDb(req.body)
 })
 
 router.post('/login',jsonParser,async (req,res)=>{
     console.log(req.body)
     const {error, user } =await getUserDb(req.body)
     if (error) {
-        res.status = error.status
-        res.send(error.message)
+        // res.status = error.status
+        // res.send(error.message)
+        res.status(error.status).send(error.message)
         console.log(error)
         return
     }

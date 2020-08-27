@@ -8,12 +8,13 @@ const {createUserDb, getUserDb} = require('./repository/usersRepository')
 
 
 router.get('/', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
     res.send("server is up and runnig")
 })
 
 router.post('/register', jsonParser, async (req, res) => {
     // console.log(req.body)
-
+    res.setHeader('Access-Control-Allow-Origin', '*');
 
     if (!req.body.password || !req.body.firstName ||
         !req.body.lastName || !req.body.email || !req.body.userName) {
@@ -30,6 +31,7 @@ router.post('/register', jsonParser, async (req, res) => {
 })
 
 router.post('/login', jsonParser, async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
     console.log(req.body)
     const {error, user} = await getUserDb(req.body)
     if (error) {

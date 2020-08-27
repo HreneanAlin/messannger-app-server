@@ -15,8 +15,8 @@ router.get('/', (req, res) => {
 
 router.post('/register', jsonParser, async (req, res) => {
     // console.log(req.body)
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    // res.header("Access-Control-Allow-Origin", "*");
+    // res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 
     if (!req.body.password || !req.body.firstName ||
         !req.body.lastName || !req.body.email || !req.body.userName) {
@@ -33,8 +33,8 @@ router.post('/register', jsonParser, async (req, res) => {
 })
 
 router.post('/login', jsonParser, async (req, res) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    // res.header("Access-Control-Allow-Origin", "*");
+    // res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     console.log(req.body)
     const {error, user} = await getUserDb(req.body)
     if (error) {

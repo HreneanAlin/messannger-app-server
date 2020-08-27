@@ -14,7 +14,7 @@ const {getUserDbByUserName} = require('./repository/usersRepository')
 const PORT = process.env.PORT || 5000
 
 
-const io = socketio(server).origins('*:*')
+const io = socketio(server,{cookie: false}).origins('*:*')
 
 app.use(express.json())
 app.use(cors())

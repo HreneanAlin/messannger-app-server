@@ -6,14 +6,18 @@ const jsonParser = bodyParser.json()
 const urlencodedParser = bodyParser.urlencoded({extended: false})
 const {createUserDb, getUserDb} = require('./repository/usersRepository')
 console.log('diojaudiaisjduiajdiujauijduiejviufdbuyvdfauyfyuegfyue')
+const cors = require('cors')
+const corsOptions = {
+    origin: 'https://ha-messenge-app-front.herokuapp.com/',
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
 
-
-router.get('/', (req, res) => {
+router.get('/',cors(corsOptions), (req, res) => {
 
     res.send("server is up and runnig")
 })
 
-router.post('/register', jsonParser, async (req, res) => {
+router.post('/register',cors(corsOptions), jsonParser, async (req, res) => {
     // console.log(req.body)
     // res.header("Access-Control-Allow-Origin", "*");
     // res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -32,7 +36,7 @@ router.post('/register', jsonParser, async (req, res) => {
 
 })
 
-router.post('/login', jsonParser, async (req, res) => {
+router.post('/login',cors(corsOptions), jsonParser, async (req, res) => {
     // res.header("Access-Control-Allow-Origin", "*");
     // res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     console.log(req.body)

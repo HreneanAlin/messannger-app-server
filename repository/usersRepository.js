@@ -1,32 +1,37 @@
-if(process.env.NODE_ENV !== 'production'){
-require("dotenv").config({path:'.env'})
+if (process.env.NODE_ENV !== 'production') {
+    require("dotenv").config({path: '.env'})
 
 }
 const mySql = require('mysql')
 const bcrypt = require('bcrypt')
 
-const db = mySql.createConnection({
-    host:process.env.DATA_BASE_HOST,
-    user:process.env.DATA_BASE_USER,
-    password:process.env.DATA_BASE_PASSWORD,
-    database:process.env.DATA_BASE_CURRENT
-})
+const dbConfig = {
 
-db.connect(err =>{
-    if(err) {
+    host: process.env.DATA_BASE_HOST,
+    user: process.env.DATA_BASE_USER,
+    password: process.env.DATA_BASE_PASSWORD,
+    database: process.env.DATA_BASE_CURRENT
 
+}
+
+
+const db = mySql.createConnection(dbConfig)
+
+db.connect(err => {
+    if (err) {
+        console.log("Databa close the connection!!!")
         throw err
     }
     console.log('MySql Connected')
 })
 
- const createUserDb = async (body) => {
+const createUserDb = async (body) => {
 
     try {
-        if(await checkIfUserNameExist(body.userName)){
+        if (await checkIfUserNameExist(body.userName)) {
             return {action: {status: 403, message: "Username Already Taken!"}}
         }
-        if(await checkIfEmailExist(body.email)){
+        if (await checkIfEmailExist(body.email)) {
             return {action: {status: 403, message: "Email Already in use"}}
         }
 
@@ -51,60 +56,60 @@ db.connect(err =>{
         })
 
         return {action: {status: 200, message: "Account Created"}}
-    }catch (e) {
-        if(e) throw e
+    } catch (e) {
+        if (e) throw e
 
     }
 }
 
-const checkIfUserNameExist= async (username)=>{
+const checkIfUserNameExist = async (username) => {
     try {
         let sql = `select * from tb_users where user_name ='${username}'`;
         const data = await dbQuery(sql)
         const user = data[0]
-        if(user) return true
+        if (user) return true
         return false
 
-    }catch (e) {
+    } catch (e) {
         throw e
     }
 }
 
-const checkIfEmailExist= async (email)=>{
+const checkIfEmailExist = async (email) => {
     try {
         let sql = `select * from tb_users where email ='${email}'`;
         const data = await dbQuery(sql)
         const user = data[0]
-        if(user) return true
+        if (user) return true
         return false
 
-    }catch (e) {
+    } catch (e) {
         throw e
     }
 }
 
 
-const getUserDb = async (body) =>{
+const getUserDb = async (body) => {
     try {
         let sql = `select * from tb_users where user_name ='${body.userName}'`;
         const data = await dbQuery(sql)
         const user = data[0]
         if (!user) return {error: {status: 404, message: "no user found"}}
-        if(await bcrypt.compare(body.password,user.password)) return {user}
-        return {error:{status:401, message:"wrong password"}}
-    }catch (e) {
-        
+        if (await bcrypt.compare(body.password, user.password)) return {user}
+        return {error: {status: 401, message: "wrong password"}}
+    } catch (e) {
+
     }
 }
 
-const getUserByUserName = async (userName) =>{
+const getUserByUserName = async (userName) => {
     try {
         let sql = `select * from tb_users where user_name ='${userName}'`;
         const data = await dbQuery(sql)
         const user = data[0]
         return user
 
-    }catch (e) {
+    } catch (e) {
         throw e
     }
 }
@@ -112,7 +117,7 @@ const getUserByUserName = async (userName) =>{
 
 const dbQuery = (databaseQuery) => {
     return new Promise(data => {
-        db.query(databaseQuery,  (error, result) => {
+        db.query(databaseQuery, (error, result) => {
             if (error) {
                 console.log(error);
                 throw error;
@@ -131,6 +136,31 @@ const dbQuery = (databaseQuery) => {
     });
 
 }
+
+var connection;
+
+function handleDisconnect() {
+    connection = mySql.createConnection(dbConfig); // Recreate the connection, since
+    // the old one cannot be reused.
+
+    connection.connect(function (err) {              // The server is either down
+        if (err) {                                     // or restarting (takes a while sometimes).
+            console.log('error when connecting to db:', err);
+            setTimeout(handleDisconnect, 2000); // We introduce a delay before attempting to reconnect,
+        }                                     // to avoid a hot loop, and to allow our node script to
+    });                                     // process asynchronous requests in the meantime.
+                                            // If you're also serving http, display a 503 error.
+    connection.on('error', function (err) {
+        console.log('db error', err);
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
+            handleDisconnect();                         // lost due to either server restart, or a
+        } else {                                      // connnection idle timeout (the wait_timeout
+            throw err;                                  // server variable configures this)
+        }
+    });
+}
+
+handleDisconnect();
 
 module.exports.createUserDb = createUserDb
 

@@ -9,7 +9,7 @@ const server = http.createServer(app)
 const socketio = require('socket.io')
 
 const cors = require('cors')
-//app.use(cors())
+app.use(cors())
 const {addUser, removeUser, getUser, getUsersInRoom} = require('./users.js')
 const {getUserDbByUserName} = require('./repository/usersRepository')
 const PORT = process.env.PORT || 5000

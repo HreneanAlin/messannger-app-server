@@ -22,6 +22,7 @@ var connection;
 
 const handleDisconnect = () => {
     console.log("disconneting happening")
+
     db = mySql.createConnection(dbConfig); // Recreate the connection, since
     // the old one cannot be reused.
 
@@ -45,7 +46,7 @@ handleDisconnect()
 
 
 
-setInterval(handleDisconnect, 1000*60);
+//setInterval(handleDisconnect, 1000*60);
 
 
 // db.connect(err => {

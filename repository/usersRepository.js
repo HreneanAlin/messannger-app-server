@@ -17,10 +17,10 @@ const dbConfig = {
 
 let db = mySql.createConnection(dbConfig)
 mySql.createPool
-handleDisconnect();
+
 var connection;
 
-function handleDisconnect() {
+const handleDisconnect = () => {
     console.log("disconneting happening")
     db = mySql.createConnection(dbConfig); // Recreate the connection, since
     // the old one cannot be reused.
@@ -41,7 +41,7 @@ function handleDisconnect() {
         }
     });
 }
-
+handleDisconnect()
 
 
 // db.connect(err => {
@@ -171,3 +171,4 @@ module.exports.createUserDb = createUserDb
 
 module.exports.getUserDb = getUserDb
 module.exports.getUserDbByUserName = getUserByUserName
+module.exports.handleDisconnect = handleDisconnect

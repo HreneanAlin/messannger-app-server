@@ -10,8 +10,8 @@ const socketio = require('socket.io')
 
 const cors = require('cors')
 app.use(cors())
-const {addUser, removeUser, getUser, getUsersInRoom} = require('./users.js')
-const {getUserDbByUserName} = require('./repository/usersRepository')
+const {addUser, removeUser, getUser, getUsersInRoom,} = require('./users.js')
+const {getUserDbByUserName ,handleDisconnect} = require('./repository/usersRepository')
 const PORT = process.env.PORT || 5000
 
 
@@ -30,8 +30,10 @@ app.use(router)
 
 io.on('connection', (socket) => {
     console.log("we have a new connection")
+    handleDisconnect()
 
     socket.on('join', async ({name, room,generatedId, isAuthed, authUser}, callback) => {
+
         console.log("The generated id ",generatedId)
         let verified = false
 

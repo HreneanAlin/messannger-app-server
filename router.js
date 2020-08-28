@@ -9,13 +9,13 @@ console.log('diojaudiaisjduiajdiujauijduiejviufdbuyvdfauyfyuegfyue')
 
 
 router.get('/', (req, res) => {
-  handleDisconnect()
+ // handleDisconnect()
     res.send("server is up and runnig")
 
 })
 
 router.post('/register', jsonParser, async (req, res) => {
-    handleDisconnect()
+    //handleDisconnect()
     // console.log(req.body)
     // res.header("Access-Control-Allow-Origin", "*");
     // res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -37,7 +37,7 @@ router.post('/register', jsonParser, async (req, res) => {
 router.post('/login', jsonParser, async (req, res) => {
     // res.header("Access-Control-Allow-Origin", "*");
     // res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  handleDisconnect()
+  //handleDisconnect()
     console.log(req.body)
     const {error, user} = await getUserDb(req.body)
     if (error) {

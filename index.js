@@ -30,7 +30,7 @@ app.use(router)
 
 io.on('connection', (socket) => {
     console.log("we have a new connection")
-    handleDisconnect()
+   // handleDisconnect()
 
     socket.on('join', async ({name, room,generatedId, isAuthed, authUser}, callback) => {
 

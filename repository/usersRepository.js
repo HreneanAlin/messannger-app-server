@@ -16,10 +16,11 @@ const dbConfig = {
 
 
 const db = mySql.createConnection(dbConfig)
-
+handleDisconnect();
 var connection;
 
 function handleDisconnect() {
+    console.log("disconneting happening")
     connection = mySql.createConnection(dbConfig); // Recreate the connection, since
     // the old one cannot be reused.
 
@@ -40,12 +41,12 @@ function handleDisconnect() {
     });
 }
 
-handleDisconnect();
+
 
 db.connect(err => {
     if (err) {
         console.log("Databa close the connection!!!")
-        throw err
+        handleDisconnect();
     }
     console.log('MySql Connected')
 })
@@ -75,7 +76,7 @@ const createUserDb = async (body) => {
         let sql = 'Insert into tb_users set ?'
 
         db.query(sql, user, (err, result) => {
-            if (err) throw err
+            if (err) handleDisconnect()
             console.log('inserted done')
             console.log(result)
         })
@@ -144,8 +145,9 @@ const dbQuery = (databaseQuery) => {
     return new Promise(data => {
         db.query(databaseQuery, (error, result) => {
             if (error) {
+                handleDisconnect()
                 console.log(error);
-                throw error;
+                //throw error;
             }
             try {
                 console.log(result);
@@ -154,7 +156,7 @@ const dbQuery = (databaseQuery) => {
 
             } catch (error) {
                 data({});
-                throw error;
+               // throw error;
             }
 
         });

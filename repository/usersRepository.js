@@ -45,18 +45,6 @@ const handleDisconnect = () => {
 handleDisconnect()
 
 
-
-//setInterval(handleDisconnect, 1000*60);
-
-
-// db.connect(err => {
-//     if (err) {
-//         console.log("Databa close the connection!!!")
-//         handleDisconnect();
-//     }
-//     console.log('MySql Connected')
-// })
-
 const createUserDb = async (body) => {
 
     try {

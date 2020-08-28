@@ -81,7 +81,7 @@ const createUserDb = async (body) => {
         let sql = 'Insert into tb_users set ?'
 
         db.query(sql, user, (err, result) => {
-            if (err) handleDisconnect()
+            if (err) throw e
             console.log('inserted done')
             console.log(result)
         })
@@ -150,7 +150,7 @@ const dbQuery = (databaseQuery) => {
     return new Promise(data => {
         db.query(databaseQuery, (error, result) => {
             if (error) {
-                handleDisconnect()
+
                 console.log(error);
                 //throw error;
             }

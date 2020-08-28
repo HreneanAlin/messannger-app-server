@@ -57,7 +57,7 @@ io.on('connection', (socket) => {
             socket.emit('message', {user:{name:"admin", verified:true }, text: `Connection lost, Please Refresh page`})
             return
         }
-        socket.emit('message', {user:{name:"admin", verified:true }, text: `${user.name} wellcome to ${user.room}`})
+        socket.emit('message', {user:{name:"admin", verified:true }, text: `${user.name} welcome to ${user.room}`})
         socket.broadcast.to(user.room).emit('message', {user:{name:"admin", verified:true }, text:`${user.name} has joined`})
         socket.join(user.room)
         io.to(user.room).emit('roomData',{room: user.room, users:getUsersInRoom(user.room)})

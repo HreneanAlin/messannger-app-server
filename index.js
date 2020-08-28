@@ -9,6 +9,7 @@ const server = http.createServer(app)
 const socketio = require('socket.io')
 
 const cors = require('cors')
+app.use(cors())
 const {addUser, removeUser, getUser, getUsersInRoom} = require('./users.js')
 const {getUserDbByUserName} = require('./repository/usersRepository')
 const PORT = process.env.PORT || 5000
@@ -17,7 +18,7 @@ const PORT = process.env.PORT || 5000
 const io = socketio(server,{cookie: false}).origins('*:*')
 
 app.use(express.json())
-app.use(cors())
+
 
 // app.use(function(req, res, next) {
 //     res.header("Access-Control-Allow-Origin", "*");

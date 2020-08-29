@@ -10,7 +10,7 @@ const dbConfig = {
     user: process.env.DATA_BASE_USER,
     password: process.env.DATA_BASE_PASSWORD,
     database: process.env.DATA_BASE_CURRENT,
-    debug : 'false'
+    debug: 'false'
 
 }
 
@@ -21,51 +21,51 @@ mySql.createPool
 var connection;
 
 const handleDisconnect = () => {
-    console.log("disconneting happening")
+    console.log("Connectig to db..")
 
-    db = mySql.createConnection(dbConfig); // Recreate the connection, since
+    db = mySql.createConnection(dbConfig);
     // the old one cannot be reused.
 
-    db.connect(function (err) {              // The server is either down
-        if (err) {                                     // or restarting (takes a while sometimes).
+    db.connect(function (err) {
+        if (err) {
             console.log('error when connecting to db:', err);
-            setTimeout(handleDisconnect, 2000); // We introduce a delay before attempting to reconnect,
-        }                                     // to avoid a hot loop, and to allow our node script to
-    });                                     // process asynchronous requests in the meantime.
-                                            // If you're also serving http, display a 503 error.
+            setTimeout(handleDisconnect, 2000);
+        } else {
+            console.log('MySql Connected')
+        }
+    });
+
     db.on('error', function (err) {
         console.log('db error', err);
-        if (err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
-            handleDisconnect();                         // lost due to either server restart, or a
-        } else {                                      // connnection idle timeout (the wait_timeout
-            throw err;                                  // server variable configures this)
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+            handleDisconnect();
+        } else {
+            throw err;
         }
     });
 }
 handleDisconnect()
 
 
-const createUserDb = async (body) => {
+const createUserDb = async (tempUser) => {
 
     try {
-        if (await checkIfUserNameExist(body.userName)) {
-            return {action: {status: 403, message: "Username Already Taken!"}}
+        if (await checkIfUserNameExist(tempUser.user_name, 'tb_users')) {
+            return {errordb: "Account Allready Activated"}
         }
-        if (await checkIfEmailExist(body.email)) {
-            return {action: {status: 403, message: "Email Already in use"}}
-        }
+
 
 
         // const rom_date = new Date(body.date).toLocaleString("en-US", {timeZone: "Europe/Bucharest"})
         //console.log(rom_date)
 
         const user = {
-            first_name: body.firstName,
-            last_name: body.lastName,
-            email: body.email,
-            user_name: body.userName,
-            password: await bcrypt.hash(body.password, 10),
-            regist_date: new Date(body.date).toJSON().slice(0, 19).replace('T', ' ')
+            first_name: tempUser.first_name,
+            last_name: tempUser.last_name,
+            email: tempUser.email,
+            user_name: tempUser.user_name,
+            password: tempUser.password,
+            regist_date: tempUser.regist_date
         }
         let sql = 'Insert into tb_users set ?'
 
@@ -82,9 +82,46 @@ const createUserDb = async (body) => {
     }
 }
 
-const checkIfUserNameExist = async (username) => {
+
+const createTempUser = async (body) => {
+
     try {
-        let sql = `select * from tb_users where user_name ='${username}'`;
+        if (await checkIfUserNameExist(body.userName, 'tb_users') || await checkIfUserNameExist(body.userName, 'tb_users_temp')) {
+            return {action: {status: 403, message: "Username Already Taken!"}}
+        }
+        if (await checkIfEmailExist(body.email, 'tb_users') || await checkIfEmailExist(body.email, 'tb_users_temp')) {
+            return {action: {status: 403, message: "Email Already in use"}}
+        }
+
+        const user = {
+            first_name: body.firstName,
+            last_name: body.lastName,
+            email: body.email,
+            user_name: body.userName,
+            password: await bcrypt.hash(body.password, 10),
+            regist_date: new Date(body.date).toJSON().slice(0, 19).replace('T', ' '),
+            verification_id: body.verificationId
+
+        }
+        let sql = 'Insert into tb_users_temp set ?'
+
+        db.query(sql, user, (err, result) => {
+            if (err) throw e
+            console.log('inserted done to temporary table')
+            console.log(result)
+        })
+
+        return {action: {status: 200, message: "Request send!"}}
+    } catch (e) {
+        if (e) throw e
+
+    }
+}
+
+
+const checkIfUserNameExist = async (username, table) => {
+    try {
+        let sql = `select * from ${table} where user_name ='${username}'`;
         const data = await dbQuery(sql)
         const user = data[0]
         if (user) return true
@@ -95,9 +132,9 @@ const checkIfUserNameExist = async (username) => {
     }
 }
 
-const checkIfEmailExist = async (email) => {
+const checkIfEmailExist = async (email, table) => {
     try {
-        let sql = `select * from tb_users where email ='${email}'`;
+        let sql = `select * from ${table} where email ='${email}'`;
         const data = await dbQuery(sql)
         const user = data[0]
         if (user) return true
@@ -134,6 +171,29 @@ const getUserByUserName = async (userName) => {
     }
 }
 
+const pullUserFromTemp = async (verificationId) => {
+    try {
+        let sql = `select * from tb_users_temp where verification_id ='${verificationId}'`;
+        const data = await dbQuery(sql);
+        if (!data[0]) return {error: "It looks like you followed a broken link"}
+        return {user: data[0]}
+
+    } catch (e) {
+        throw e
+
+    }
+}
+
+const deleteUserFromTemp = (verificationId) => {
+    const sql = `delete from tb_users_temp where verification_id='${verificationId}'`
+
+    db.query(sql, (err, result) => {
+        if (err) throw e
+        console.log('user deleted from temporary table')
+        console.log(result)
+    })
+}
+
 
 const dbQuery = (databaseQuery) => {
     return new Promise(data => {
@@ -150,7 +210,7 @@ const dbQuery = (databaseQuery) => {
 
             } catch (error) {
                 data({});
-               // throw error;
+                // throw error;
             }
 
         });
@@ -158,10 +218,25 @@ const dbQuery = (databaseQuery) => {
 
 }
 
+const checkIfVerifiedIdExists = async (verifiedId) => {
+    try {
+        let sql = `select verification_id from tb_users_temp where verification_id='${verifiedId}'`;
+        const data = await dbQuery(sql)
+        if(data[0]) return true
+        return false
+
+
+    } catch (e) {
+        throw e
+    }
+}
 
 
 module.exports.createUserDb = createUserDb
-
 module.exports.getUserDb = getUserDb
 module.exports.getUserDbByUserName = getUserByUserName
 module.exports.handleDisconnect = handleDisconnect
+module.exports.createTempUser = createTempUser
+module.exports.pullUserFromTemp = pullUserFromTemp
+module.exports.deleteUserFromTemp = deleteUserFromTemp
+module.exports.checkIfVerifiedIdExists = checkIfVerifiedIdExists

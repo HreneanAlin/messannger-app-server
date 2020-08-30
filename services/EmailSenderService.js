@@ -5,8 +5,18 @@ if (process.env.NODE_ENV !== 'production') {
 
 }
 
+
+function validateEmail(email) {
+    const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+}
+
 const sendEmailToVerifyUser = async (body)=>{
  try{
+
+     if(!validateEmail(body.email)){
+         return {error:{status:403, message:"Invalid Email"}}
+     }
      const mailbody = `
         <h1>Welcome to Ha-messenger!</h1>
         <p>Hello ${body.firstName} ${body.lastName}!</p>
@@ -26,18 +36,30 @@ const sendEmailToVerifyUser = async (body)=>{
 
      const information = {
          from: `"ha-messenger" <${APP_EMAIL}>`,
-         to: body.email,
+         to:  body.email,
          subject: "Email Validation",
          html: mailbody
      }
 
-     let info = await transporter.sendMail(information,(err,data)=>{
-         if(err)throw err
-         else console.log(`message send`)
+
+     const res = await transporter.sendMail(information,(err,data)=>{
+         if(err) {
+             console.log(err)
+
+         }
+
+         else{
+             console.log(`message send`,data)
+
+         }
+
      })
 
+     return {send:{status:200,message:'Email send!'}}
+
  }catch (e) {
-     throw e
+
+     return {error:{status:403, message:"Invalid Email"}}
  }
 }
 

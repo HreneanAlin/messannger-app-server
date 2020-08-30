@@ -18,10 +18,7 @@ router.get('/', (req, res) => {
 })
 
 router.post('/register', jsonParser, async (req, res) => {
-    //handleDisconnect()
-    // console.log(req.body)
-    // res.header("Access-Control-Allow-Origin", "*");
-    // res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
     console.log(req.body)
     if (!req.body.password || !req.body.firstName ||
         !req.body.lastName || !req.body.email || !req.body.userName) {
@@ -32,12 +29,19 @@ router.post('/register', jsonParser, async (req, res) => {
         res.status(400).send("Internal Error Occured!")
         return
     }
+
+
     try {
+
+        const {error,send} = await sendEmailToVerifyUser(req.body)
+        if(error){
+            res.status(error.status).send(error.message)
+            return
+        }
         const {action} = await createTempUser(req.body)
-        await sendEmailToVerifyUser(req.body)
         res.status(action.status).send(action.message)
     }catch (e) {
-        throw e
+        console.log(e)
     }
 
 })

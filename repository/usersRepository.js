@@ -18,7 +18,7 @@ const dbConfig = {
 let db = mySql.createConnection(dbConfig)
 mySql.createPool
 
-var connection;
+
 
 const handleDisconnect = () => {
     console.log("Connectig to db..")
@@ -82,16 +82,27 @@ const createUserDb = async (tempUser) => {
     }
 }
 
+const verifyUser = async (body) =>{
+    try{
+        if (await checkIfUserNameExist(body.userName, 'tb_users') || await checkIfUserNameExist(body.userName, 'tb_users_temp')) {
+            return {exist: {status: 403, message: "Username Already Taken!"}}
+        }
+        if (await checkIfEmailExist(body.email, 'tb_users') || await checkIfEmailExist(body.email, 'tb_users_temp')) {
+            return {exist: {status: 403, message: "Email Already in use"}}
+        }
+        return {exist:null}
+
+    }catch (e) {
+        return {exist: {status: 403, message: "An error occured"}}
+
+    }
+}
+
 
 const createTempUser = async (body) => {
 
     try {
-        if (await checkIfUserNameExist(body.userName, 'tb_users') || await checkIfUserNameExist(body.userName, 'tb_users_temp')) {
-            return {action: {status: 403, message: "Username Already Taken!"}}
-        }
-        if (await checkIfEmailExist(body.email, 'tb_users') || await checkIfEmailExist(body.email, 'tb_users_temp')) {
-            return {action: {status: 403, message: "Email Already in use"}}
-        }
+
 
         const user = {
             first_name: body.firstName,
@@ -240,3 +251,4 @@ module.exports.createTempUser = createTempUser
 module.exports.pullUserFromTemp = pullUserFromTemp
 module.exports.deleteUserFromTemp = deleteUserFromTemp
 module.exports.checkIfVerifiedIdExists = checkIfVerifiedIdExists
+module.exports.verifyUser = verifyUser

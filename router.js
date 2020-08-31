@@ -3,7 +3,8 @@ const router = express.Router()
 const bodyParser = require('body-parser')
 const jsonParser = bodyParser.json()
 const urlencodedParser = bodyParser.urlencoded({extended: false})
-const {createUserDb, getUserDb , createTempUser, pullUserFromTemp, deleteUserFromTemp, checkIfVerifiedIdExists} = require('./repository/usersRepository')
+const {createUserDb, getUserDb , createTempUser, pullUserFromTemp
+    , deleteUserFromTemp, checkIfVerifiedIdExists, verifyUser} = require('./repository/usersRepository')
 const {sendEmailToVerifyUser} = require('./services/EmailSenderService')
 if (process.env.NODE_ENV !== 'production') {
     require("dotenv").config({path: '.env'})
@@ -12,7 +13,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 
 router.get('/', (req, res) => {
- // handleDisconnect()
+
     res.send("server is up and runnig")
 
 })
@@ -32,6 +33,11 @@ router.post('/register', jsonParser, async (req, res) => {
 
 
     try {
+        const {exist} = await verifyUser(req.body)
+        if(exist){
+            res.status(exist.status).send(exist.message)
+            return
+        }
 
         const {error,send} = await sendEmailToVerifyUser(req.body)
         if(error){
@@ -47,14 +53,11 @@ router.post('/register', jsonParser, async (req, res) => {
 })
 
 router.post('/login', jsonParser, async (req, res) => {
-    // res.header("Access-Control-Allow-Origin", "*");
-    // res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  //handleDisconnect()
+
     console.log(req.body)
     const {error, user} = await getUserDb(req.body)
     if (error) {
-        // res.status = error.status
-        // res.send(error.message)
+
         res.status(error.status).send(error.message)
         console.log(error)
         return

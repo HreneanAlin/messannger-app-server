@@ -19,7 +19,6 @@ let db = mySql.createConnection(dbConfig)
 mySql.createPool
 
 
-
 const handleDisconnect = () => {
     console.log("Connectig to db..")
 
@@ -55,7 +54,6 @@ const createUserDb = async (tempUser) => {
         }
 
 
-
         // const rom_date = new Date(body.date).toLocaleString("en-US", {timeZone: "Europe/Bucharest"})
         //console.log(rom_date)
 
@@ -82,17 +80,17 @@ const createUserDb = async (tempUser) => {
     }
 }
 
-const verifyUser = async (body) =>{
-    try{
+const verifyUser = async (body) => {
+    try {
         if (await checkIfUserNameExist(body.userName, 'tb_users') || await checkIfUserNameExist(body.userName, 'tb_users_temp')) {
             return {exist: {status: 403, message: "Username Already Taken!"}}
         }
         if (await checkIfEmailExist(body.email, 'tb_users') || await checkIfEmailExist(body.email, 'tb_users_temp')) {
             return {exist: {status: 403, message: "Email Already in use"}}
         }
-        return {exist:null}
+        return {exist: null}
 
-    }catch (e) {
+    } catch (e) {
         return {exist: {status: 403, message: "An error occured"}}
 
     }
@@ -233,7 +231,7 @@ const checkIfVerifiedIdExists = async (verifiedId) => {
     try {
         let sql = `select verification_id from tb_users_temp where verification_id='${verifiedId}'`;
         const data = await dbQuery(sql)
-        if(data[0]) return true
+        if (data[0]) return true
         return false
 
 
@@ -242,6 +240,82 @@ const checkIfVerifiedIdExists = async (verifiedId) => {
     }
 }
 
+
+const getUserDbByEmail = async (email) => {
+    try {
+        let sql = `select first_name, last_name, user_name from tb_users where email='${email}'`;
+        const data = await dbQuery(sql)
+        return data[0]
+    } catch (e) {
+        throw e
+    }
+}
+
+const getInfoById = async (id) => {
+    try {
+        let sql = `select email from tb_info_for_recover where info_id='${id}'`;
+        const data = await dbQuery(sql)
+        return data[0]
+    } catch (e) {
+        throw e
+    }
+}
+
+const insertInfoForPasswordRecover = (info) => {
+    const procesedInfo = {
+        first_name: info.firstName,
+        last_name: info.lastName,
+        email: info.email,
+        user_name: info.userName,
+        info_id: info.id
+    }
+
+    let sql = 'Insert into tb_info_for_recover set ?'
+
+    db.query(sql, procesedInfo, (err, result) => {
+        if (err) throw e
+        console.log('inserted done to info for recover')
+        console.log(result)
+    })
+
+
+}
+
+const updatePassword = async (password, email) => {
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10)
+        let sql = `update tb_users set password ='${hashedPassword}' where email='${email}'`
+        db.query(sql, (err, result) => {
+            if (err) throw e
+            console.log('password update done')
+            console.log(result)
+        })
+        return {action: {status: 200, message: "Password was reset!"}}
+
+    } catch (e) {
+        console.log(e)
+        throw e
+    }
+
+}
+
+const deleteByIdFromInfoTable = (id) => {
+    try {
+
+        let sql = `delete from tb_info_for_recover where info_id='${id}'`
+        db.query(sql, (err, result) => {
+            if (err) throw e
+            console.log('deleted from info table')
+            console.log(result)
+        })
+
+
+    } catch (e) {
+        console.log(e)
+        throw e
+    }
+
+}
 
 module.exports.createUserDb = createUserDb
 module.exports.getUserDb = getUserDb
@@ -252,3 +326,9 @@ module.exports.pullUserFromTemp = pullUserFromTemp
 module.exports.deleteUserFromTemp = deleteUserFromTemp
 module.exports.checkIfVerifiedIdExists = checkIfVerifiedIdExists
 module.exports.verifyUser = verifyUser
+module.exports.checkIfEmailExist = checkIfEmailExist
+module.exports.getUserDbByEmail = getUserDbByEmail
+module.exports.insertInfoForPasswordRecover = insertInfoForPasswordRecover
+module.exports.getInfoById = getInfoById
+module.exports.updatePassword = updatePassword
+module.exports.deleteByIdFromInfoTable = deleteByIdFromInfoTable

@@ -1,17 +1,17 @@
 
 const express = require('express')
-
-
 const http = require('http')
 const router = require("./router.js")
 const app = express()
 const server = http.createServer(app)
 const socketio = require('socket.io')
-
+const passport = require('passport')
+const cookieSession = require('cookie-session')
 const cors = require('cors')
 app.use(cors())
 const {addUser, removeUser, getUser, getUsersInRoom,} = require('./users.js')
-const {getUserDbByUserName ,handleDisconnect} = require('./repository/usersRepository')
+const {getUserDbByUserName } = require('./repository/usersRepository')
+require('./passports/passportGoogleConfig')
 const PORT = process.env.PORT || 5000
 
 
@@ -19,12 +19,14 @@ const io = socketio(server,{cookie: false}).origins('*:*')
 
 app.use(express.json())
 
+app.use(cookieSession({
+    name: 'login-session',
+    keys: ['key1', 'key2']
+}))
 
-// app.use(function(req, res, next) {
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     next();
-// });
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 app.use(router)
 

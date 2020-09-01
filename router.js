@@ -1,4 +1,5 @@
 const express = require('express')
+const passport = require('passport')
 const router = express.Router()
 const bodyParser = require('body-parser')
 const jsonParser = bodyParser.json()
@@ -204,5 +205,15 @@ router.post('/password-reset-form', jsonParser, async (req, res) => {
     }
 })
 
+router.get('/google-auth',(req,res)=>{
+    res.send('Hellor')
+})
+
+router.get('/google', passport.authenticate('google', { scope: ['profile','email'] }));
+
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), function(req, res) {
+    console.log("The User Is...",req.user)
+
+});
 
 module.exports = router

@@ -7,7 +7,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const JWTConfig = (user) => {
-
+    console.log("The private key", process.env.JWT_PRIVATE_KEY)
     const expiresIn = '30d'
 
     const payload = {

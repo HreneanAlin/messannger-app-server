@@ -7,7 +7,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const JWTConfig = (user) => {
-    console.log("The private key", process.env.JWT_PRIVATE_KEY)
+
     const expiresIn = '30d'
 
     const payload = {
@@ -19,10 +19,12 @@ const JWTConfig = (user) => {
         iat: Date.now()
     }
     const signedToken = jwt.sign(payload, process.env.JWT_PRIVATE_KEY, {expiresIn, algorithm: 'RS256'})
+    console.log("The toke",signedToken)
     return {
         signedToken,
         expiresIn
     }
+
 
 }
 

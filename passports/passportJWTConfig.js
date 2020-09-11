@@ -7,9 +7,11 @@ if (process.env.NODE_ENV !== 'production') {
     require("dotenv").config({path: '../.env'})
 }
 
+const publicKey= "-----BEGIN RSA PUBLIC KEY-----\n" + process.env.JWT_PUBLIC_KEY+"\n-----END RSA PUBLIC KEY-----"
+
 const options = {
     jwtFromRequest: ExtractJwt.fromBodyField('token'),
-    secretOrKey: process.env.JWT_PUBLIC_KEY,
+    secretOrKey: publicKey,
     algorithms: ['RS256']
 }
 

@@ -7,6 +7,8 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const JWTConfig = (user) => {
+    const privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" + process.env.JWT_PRIVATE_KEY+"\n-----END RSA PRIVATE KEY-----"
+
 
     const expiresIn = '30d'
 
@@ -18,7 +20,7 @@ const JWTConfig = (user) => {
         googleId:user.google_id,
         iat: Date.now()
     }
-    const signedToken = jwt.sign(payload, process.env.JWT_PRIVATE_KEY, {expiresIn, algorithm: 'RS256'})
+    const signedToken = jwt.sign(payload, privateKey, {expiresIn, algorithm: 'RS256'})
     console.log("The toke",signedToken)
     return {
         signedToken,
@@ -30,8 +32,9 @@ const JWTConfig = (user) => {
 
 const JWTVerify = (user) => {
     let ok = false
+    const publicKey= "-----BEGIN RSA PUBLIC KEY-----\n" + process.env.JWT_PUBLIC_KEY+"\n-----END RSA PUBLIC KEY-----"
 
-    jwt.verify(user.token, process.env.JWT_PUBLIC_KEY, {algorithm: ['RS256']}, (err, payload) => {
+    jwt.verify(user.token,publicKey, {algorithm: ['RS256']}, (err, payload) => {
         if (err) console.log('is error', err)
         if (payload &&
             payload.firstName === user.firstName &&

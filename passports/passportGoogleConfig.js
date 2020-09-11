@@ -1,26 +1,18 @@
 const passport = require('passport')
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const {findOrCreateGoogleUser} = require('../services/GoogleUsersService')
 if (process.env.NODE_ENV !== 'production') {
     require("dotenv").config({path: '.env'})
 
 }
 
-// passport.serializeUser(function(user, done) {
-//     done(null, user.id);
-// });
-
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function (user, done) {
     done(null, user);
 });
 
-// passport.deserializeUser(function(id, done) {
-//     User.findById(id, function(err, user) {
-//         done(err, user);
-//     });
-// });
 
-passport.deserializeUser(function(user, done) {
-    done(null,user)
+passport.deserializeUser(function (user, done) {
+    done(null, user)
 });
 
 passport.use(new GoogleStrategy({
@@ -28,13 +20,14 @@ passport.use(new GoogleStrategy({
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: `${process.env.SERVER_URL}/google/callback`
     },
-    function(accessToken, refreshToken, profile, done) {
-        //use the profile info (mainly Profile id) to check if the user is registered into db
+    async (accessToken, refreshToken, profile, done) => {
 
-        // User.findOrCreate({ googleId: profile.id }, function (err, user) {
-        //     return done(err, user);
-        // });
+        try {
+            const user = await findOrCreateGoogleUser(profile)
+            return done(null, user)
+        }catch (e) {
+            console.log(e)
 
-        return done (null,profile)
+        }
     }
 ));

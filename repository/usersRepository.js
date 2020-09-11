@@ -5,6 +5,10 @@ if (process.env.NODE_ENV !== 'production') {
 const mySql = require('mysql')
 const bcrypt = require('bcrypt')
 
+
+
+
+
 const dbConfig = {
     host: process.env.DATA_BASE_HOST,
     user: process.env.DATA_BASE_USER,
@@ -17,6 +21,8 @@ const dbConfig = {
 
 let db = mySql.createConnection(dbConfig)
 mySql.createPool
+
+
 
 
 const handleDisconnect = () => {
@@ -180,6 +186,18 @@ const getUserByUserName = async (userName) => {
     }
 }
 
+const getUserByDbId = async (id) => {
+    try {
+        let sql = `select * from tb_users where id =${id}`;
+        const data = await dbQuery(sql)
+        const user = data[0]
+        return user
+
+    } catch (e) {
+        throw e
+    }
+}
+
 const pullUserFromTemp = async (verificationId) => {
     try {
         let sql = `select * from tb_users_temp where verification_id ='${verificationId}'`;
@@ -317,6 +335,41 @@ const deleteByIdFromInfoTable = (id) => {
 
 }
 
+
+const createGoogleUser =(profile)=>{
+    const proccedUser = {
+        first_name:profile.name.givenName,
+        last_name:profile.name.familyName,
+        email:profile.emails[0].value,
+        user_name:profile.displayName,
+        google_id:profile.id
+    }
+
+    let sql = 'Insert into tb_google_users set ?'
+
+    db.query(sql, proccedUser, (err, result) => {
+        if (err) throw err
+        console.log('inserted done to google users table')
+       // console.log(result)
+    })
+}
+
+const getGoogleUserById = async (googleId) => {
+    try{
+        let sql = `select * from tb_google_users where google_id='${googleId}'`;
+        const data = await dbQuery(sql)
+        if(data.length !== 0){
+            return data[0]
+        }
+        return null
+    }catch (e) {
+        console.log(e)
+
+    }
+}
+
+
+
 module.exports.createUserDb = createUserDb
 module.exports.getUserDb = getUserDb
 module.exports.getUserDbByUserName = getUserByUserName
@@ -332,3 +385,6 @@ module.exports.insertInfoForPasswordRecover = insertInfoForPasswordRecover
 module.exports.getInfoById = getInfoById
 module.exports.updatePassword = updatePassword
 module.exports.deleteByIdFromInfoTable = deleteByIdFromInfoTable
+module.exports.createGoogleUser = createGoogleUser
+module.exports.getGoogleUserById = getGoogleUserById
+module.exports.getUserByDbId = getUserByDbId

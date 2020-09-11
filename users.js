@@ -1,10 +1,10 @@
 const users = []
 
-const addUser = ({id, name, room, generatedId, verified}) => {
+const addUser = ({id, name, room, generatedId, verified, googleId}) => {
     name = name.trim().toLowerCase()
     room = room.trim().toLowerCase()
 
-    const user = {id,name,room,generatedId,verified}
+    const user = {id,name,room,generatedId,verified, googleId}
     users.push(user)
 
     return {user}

@@ -6,12 +6,21 @@ const app = express()
 const server = http.createServer(app)
 const socketio = require('socket.io')
 const passport = require('passport')
-const cookieSession = require('cookie-session')
 const cors = require('cors')
+
 app.use(cors())
+const {JWTVerify} = require('./JWT/JWTConfig')
 const {addUser, removeUser, getUser, getUsersInRoom,} = require('./users.js')
-const {getUserDbByUserName } = require('./repository/usersRepository')
+
 require('./passports/passportGoogleConfig')
+require('./passports/passportJWTConfig')
+
+if (process.env.NODE_ENV !== 'production') {
+    require("dotenv").config({path: '.env'})
+
+}
+
+
 const PORT = process.env.PORT || 5000
 
 
@@ -19,41 +28,44 @@ const io = socketio(server,{cookie: false}).origins('*:*')
 
 app.use(express.json())
 
-app.use(cookieSession({
-    name: 'login-session',
-    keys: ['key1', 'key2']
-}))
+
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 
+
 app.use(router)
+
 
 io.on('connection', (socket) => {
     console.log("we have a new connection")
-   // handleDisconnect()
+
 
     socket.on('join', async ({name, room,generatedId, isAuthed, authUser}, callback) => {
 
         console.log("The generated id ",generatedId)
         let verified = false
-
+        let googleId = null
         if(isAuthed){
            name = `${name}`
 
            try {
-               const userDb = await getUserDbByUserName(authUser.userName)
-               if(userDb){
+
+               if(JWTVerify(authUser)){
                    verified = true
+                   googleId = authUser.googleId
+               }else{
+                   socket.emit('message', {user:{name:"admin", verified:true }, text: `it looks like your token in invalid :(`})
+                   return
                }
 
            }catch (e) {
-               throw e
+               console.log(e)
            }
 
        }
-        const {error, user} = addUser({id: socket.id, name, room, generatedId, verified})
+        const {error, user} = addUser({id: socket.id, name, room, generatedId, verified,googleId})
         if (error) return callback(error)
         if(!user){
             socket.emit('message', {user:{name:"admin", verified:true }, text: `Connection lost, Please Refresh page`})

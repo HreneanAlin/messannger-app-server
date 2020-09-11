@@ -7,10 +7,11 @@ const urlencodedParser = bodyParser.urlencoded({extended: false})
 const {
     createUserDb, getUserDb, createTempUser, pullUserFromTemp
     , deleteUserFromTemp, checkIfVerifiedIdExists, verifyUser,
-    checkIfEmailExist, getUserDbByEmail, insertInfoForPasswordRecover, getInfoById,updatePassword,deleteByIdFromInfoTable
+    checkIfEmailExist, getUserDbByEmail, insertInfoForPasswordRecover, getInfoById, updatePassword, deleteByIdFromInfoTable
 } = require('./repository/usersRepository')
 const {sendEmailToVerifyUser, validateEmail, sendEmailForPasswordRecovery} = require('./services/EmailSenderService')
 const {v4} = require('uuid');
+const {issueJWT} = require("./JWT/JWTConfig")
 if (process.env.NODE_ENV !== 'production') {
     require("dotenv").config({path: '.env'})
 
@@ -59,7 +60,6 @@ router.post('/register', jsonParser, async (req, res) => {
 
 router.post('/login', jsonParser, async (req, res) => {
 
-    console.log(req.body)
     const {error, user} = await getUserDb(req.body)
     if (error) {
 
@@ -68,12 +68,17 @@ router.post('/login', jsonParser, async (req, res) => {
         return
     }
 
+    const {signedToken, expiresIn} = issueJWT(user)
+
     res.json({
         firstName: user.first_name,
         lastName: user.last_name,
-        userName: user.user_name
+        userName: user.user_name,
+        token: signedToken,
+        expiration: expiresIn
     })
 })
+
 
 
 router.get('/validation', (req, res) => {
@@ -167,7 +172,7 @@ router.get('/password-reset-form/:id', async (req, res) => {
             res.redirect(process.env.CLIENT_URL)
             return
         }
-            res.redirect(`${process.env.CLIENT_URL}/password-reset/${req.params.id}`)
+        res.redirect(`${process.env.CLIENT_URL}/password-reset/${req.params.id}`)
 
     } catch (e) {
         res.status(500).send('internal error from 1')
@@ -175,7 +180,7 @@ router.get('/password-reset-form/:id', async (req, res) => {
 })
 
 router.post('/password-reset-form', jsonParser, async (req, res) => {
-    const {id,justVerify} = req.body
+    const {id, justVerify} = req.body
 
     if (!id) {
         res.status(400).send('Bad request')
@@ -187,33 +192,45 @@ router.post('/password-reset-form', jsonParser, async (req, res) => {
             res.status(404).send('Request Not Found')
             return
         }
-       if(justVerify) {
-           res.status(200).send('found')
-           return
-       }
-       const {password}= req.body
-       if(!password){
-           res.status(400).send('No new Password')
-           return
-       }
-           const {action} = await updatePassword(password,email)
-           res.status(action.status).send(action.message)
-           deleteByIdFromInfoTable(id)
+        if (justVerify) {
+            res.status(200).send('found')
+            return
+        }
+        const {password} = req.body
+        if (!password) {
+            res.status(400).send('No new Password')
+            return
+        }
+        const {action} = await updatePassword(password, email)
+        res.status(action.status).send(action.message)
+        deleteByIdFromInfoTable(id)
 
     } catch (e) {
         res.status(500).send('internal error from 2')
     }
 })
 
-router.get('/google-auth',(req,res)=>{
-    res.send('Hellor')
-})
 
-router.get('/google', passport.authenticate('google', { scope: ['profile','email'] }));
 
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), function(req, res) {
-    console.log("The User Is...",req.user)
+router.get('/google', passport.authenticate('google', {scope: ['profile', 'email']}));
+
+router.get('/google/callback', passport.authenticate('google',{session: false}), (req, res) => {
+    console.log(req.user)
+    const{signedToken} = issueJWT(req.user)
+    res.redirect(`${process.env.CLIENT_URL}/login?tkn=${signedToken}`)
 
 });
+
+
+router.post('/user-information', jsonParser, passport.authenticate('jwt', {session: false}), (req, res) => {
+    res.json({
+        firstName: req.user.first_name,
+        lastName: req.user.last_name,
+        email: req.user.email,
+        userName: req.user.user_name,
+        dateOfRegist: req.user.regist_date
+    })
+})
+
 
 module.exports = router

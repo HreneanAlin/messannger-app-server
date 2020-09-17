@@ -14,6 +14,7 @@ const {addUser, removeUser, getUser, getUsersInRoom,} = require('./users.js')
 
 require('./passports/passportGoogleConfig')
 require('./passports/passportJWTConfig')
+require('./passports/passportFacebookConfig')
 
 if (process.env.NODE_ENV !== 'production') {
     require("dotenv").config({path: '.env'})
@@ -47,14 +48,15 @@ io.on('connection', (socket) => {
         console.log("The generated id ",generatedId)
         let verified = false
         let googleId = null
+        let facebookId = null
         if(isAuthed){
-           name = `${name}`
-
+          name = authUser.firstName+" "+authUser.lastName
            try {
 
                if(JWTVerify(authUser)){
                    verified = true
                    googleId = authUser.googleId
+                   facebookId = authUser.facebookId
                }else{
                    socket.emit('message', {user:{name:"admin", verified:true }, text: `it looks like your token in invalid :(`})
                    return
@@ -65,13 +67,13 @@ io.on('connection', (socket) => {
            }
 
        }
-        const {error, user} = addUser({id: socket.id, name, room, generatedId, verified,googleId})
+        const {error, user} = addUser({id: socket.id, name, room, generatedId, verified,googleId, facebookId})
         if (error) return callback(error)
         if(!user){
             socket.emit('message', {user:{name:"admin", verified:true }, text: `Connection lost, Please Refresh page`})
             return
         }
-        socket.emit('message', {user:{name:"admin", verified:true }, text: `${user.name} welcome to ${user.room}`})
+        socket.emit('message', {user:{name:"admin", verified:true }, text: `${user.name} welcome to ${user.room} :)`})
         socket.broadcast.to(user.room).emit('message', {user:{name:"admin", verified:true }, text:`${user.name} has joined`})
         socket.join(user.room)
         io.to(user.room).emit('roomData',{room: user.room, users:getUsersInRoom(user.room)})

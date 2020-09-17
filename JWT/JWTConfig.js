@@ -18,6 +18,7 @@ const JWTConfig = (user) => {
         lastName: user.last_name,
         userName: user.user_name,
         googleId:user.google_id,
+        facebookId:user.facebook_id,
         iat: Date.now()
     }
     const signedToken = jwt.sign(payload, privateKey, {expiresIn, algorithm: 'RS256'})

@@ -221,6 +221,16 @@ router.get('/google/callback', passport.authenticate('google',{session: false}),
 
 });
 
+router.get('/facebook', passport.authenticate('facebook',{ scope: ['email'] }));
+
+router.get('/facebook/callback',
+    passport.authenticate('facebook'),
+    (req, res) => {
+        console.log(req.user)
+        const{signedToken} = issueJWT(req.user)
+        res.redirect(`${process.env.CLIENT_URL}/login?tkn=${signedToken}`)
+    });
+
 
 router.post('/user-information', jsonParser, passport.authenticate('jwt', {session: false}), (req, res) => {
     res.json({

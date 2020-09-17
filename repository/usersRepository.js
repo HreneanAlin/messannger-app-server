@@ -354,6 +354,30 @@ const createGoogleUser =(profile)=>{
     })
 }
 
+const createFacebookUser =(profile)=>{
+    let fullName = profile.displayName.split(" ")
+    let firstName = fullName[fullName.length-1]
+    let lastName = fullName[0]
+
+    const proccedUser = {
+        first_name:firstName,
+        last_name:lastName,
+        user_name:firstName + ' ' + lastName,
+        facebook_id:profile.id
+    }
+
+    let sql = 'Insert into tb_facebook_users set ?'
+
+    db.query(sql, proccedUser, (err, result) => {
+        if (err) throw err
+        console.log('inserted done to facebook users table')
+        // console.log(result)
+    })
+}
+
+
+
+
 const getGoogleUserById = async (googleId) => {
     try{
         let sql = `select * from tb_google_users where google_id='${googleId}'`;
@@ -368,6 +392,19 @@ const getGoogleUserById = async (googleId) => {
     }
 }
 
+const getFaceBookUserById = async (faceBookId) => {
+    try{
+        let sql = `select * from tb_facebook_users where facebook_id='${faceBookId}'`;
+        const data = await dbQuery(sql)
+        if(data.length !== 0){
+            return data[0]
+        }
+        return null
+    }catch (e) {
+        console.log(e)
+
+    }
+}
 
 
 module.exports.createUserDb = createUserDb
@@ -388,3 +425,5 @@ module.exports.deleteByIdFromInfoTable = deleteByIdFromInfoTable
 module.exports.createGoogleUser = createGoogleUser
 module.exports.getGoogleUserById = getGoogleUserById
 module.exports.getUserByDbId = getUserByDbId
+module.exports.createFacebookUser = createFacebookUser
+module.exports.getFaceBookUserById = getFaceBookUserById
